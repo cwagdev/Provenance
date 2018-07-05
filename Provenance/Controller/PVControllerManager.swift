@@ -247,10 +247,6 @@ class PVControllerManager: NSObject {
 
 // MARK: - Controllers assignment
     func setController(_ controller: GCController?, toPlayer player: Int) {
-		if let controller = controller, let currentIndex = index(forController: controller), currentIndex != player {
-			setController(nil, toPlayer: currentIndex)
-		}
-
 #if TARGET_OS_TV
         // check if controller is iCade, otherwise crash
         if !((controller is PViCadeController) && controller?.microGamepad) {

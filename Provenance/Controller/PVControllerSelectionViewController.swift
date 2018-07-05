@@ -103,33 +103,31 @@ class PVControllerSelectionViewController: UITableViewController {
                 title.append(" (Player 4")
             }
 
-            actionSheet.addAction(UIAlertAction(title: title, style: .default, handler: {(_ action: UIAlertAction) -> Void in
-                if indexPath.row == 0 {
-					PVControllerManager.shared.setController(controller, toPlayer: 1)
-                } else if indexPath.row == 1 {
-					PVControllerManager.shared.setController(controller, toPlayer: 2)
-                } else if indexPath.row == 2 {
-					PVControllerManager.shared.setController(controller, toPlayer: 3)
-                } else if indexPath.row == 3 {
-					PVControllerManager.shared.setController(controller, toPlayer: 4)
+            actionSheet.addAction(UIAlertAction(title: title, style: .default, handler: { [weak self] _ in
+                if PVControllerManager.shared.index(forController: controller) != nil {
+                    let shareAlert = UIAlertController(title: "Share Controller?", message: "Do you want to share this controller with other players? This works for turn based games that ignore other player inputs when it is not their turn (like Super Mario World). This may or may not work well depending on the game/emulator. Use at your own discretion.", preferredStyle: .alert)
+                    
+                    let yesAction = UIAlertAction(title: "Share Controller", style: .default) { [weak self] _ in
+                        self?.handleControllerSelection(controller, for: player)
+                    }
+                    
+                    let noAction = UIAlertAction(title: "Do Not Share", style: .destructive) { [weak self] _ in
+                        self?.handleControllerSelection(nil, for: player)
+                    }
+                    
+                    shareAlert.addAction(yesAction)
+                    shareAlert.addAction(noAction)
+                    
+                    self?.present(shareAlert, animated: true, completion: nil)
+                } else {
+                    self?.handleControllerSelection(controller, for: player)
                 }
-                self.tableView.reloadData()
-                PVControllerManager.shared.stopListeningForICadeControllers()
             }))
+            
         }
 
-        actionSheet.addAction(UIAlertAction(title: "Not Playing", style: .default, handler: {(_ action: UIAlertAction) -> Void in
-			if indexPath.row == 0 {
-				PVControllerManager.shared.setController(nil, toPlayer: 1)
-			} else if indexPath.row == 1 {
-				PVControllerManager.shared.setController(nil, toPlayer: 2)
-			} else if indexPath.row == 2 {
-				PVControllerManager.shared.setController(nil, toPlayer: 3)
-			} else if indexPath.row == 3 {
-				PVControllerManager.shared.setController(nil, toPlayer: 4)
-			}
-            self.tableView.reloadData()
-            PVControllerManager.shared.stopListeningForICadeControllers()
+        actionSheet.addAction(UIAlertAction(title: "Not Playing", style: .default, handler: {[weak self] _ in
+            self?.handleControllerSelection(nil, for: player)
         }))
 
         actionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
@@ -140,5 +138,11 @@ class PVControllerSelectionViewController: UITableViewController {
                 actionSheet.dismiss(animated: true) {() -> Void in }
             })
         })
+    }
+    
+    private func handleControllerSelection(_ controller: GCController?, for playerIndex: Int) {
+        PVControllerManager.shared.setController(controller, toPlayer: playerIndex)
+        self.tableView.reloadData()
+        PVControllerManager.shared.stopListeningForICadeControllers()
     }
 }
